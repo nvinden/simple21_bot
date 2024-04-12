@@ -1,5 +1,41 @@
 import random
 import numpy as np
+import os
+import torch
+
+### Training Epsilon Management ###
+epsilon = None
+    
+def update_epsilon(epsilon_input : float) -> None:
+    global epsilon
+    epsilon = epsilon_input
+    
+def get_epsilon() -> float:
+    global epsilon
+    return epsilon
+
+### Training Episode Number Management ###
+episode_number = None
+
+def update_episode_no(episode_number_input : int) -> None:
+    global episode_number
+    episode_number = episode_number_input
+    
+def get_episode_no() -> int:
+    global episode_number
+    return episode_number
+
+### Saving torch models ###
+def save_models(betnet, hitnet, runname):
+    if not os.path.exists(f"models/{runname}"):
+        os.makedirs(f"models/{runname}")
+        
+    # TODO fix this with WandB saving (only save the best model btw)
+        
+    torch.save(betnet.state_dict(), f"models/{runname}/betnet.pt")
+    torch.save(hitnet.state_dict(), f"models/{runname}/hitnet.pt")
+
+### Card Counting Signal Update Function ###
 
 def playerCardCounterUpdate( card_counting_signal_input : float, num_cards_left_in_shoe : int, observed_card : int) -> float:
     # updates the card Counting signal based on:
@@ -19,6 +55,8 @@ def playerCardCounterUpdate( card_counting_signal_input : float, num_cards_left_
     output_card_counting_signal = (total_card_value_last_deck - observed_card) / (num_cards_left_in_shoe )
 
     return output_card_counting_signal
+
+### Experience Replay Buffer ###
 
 class ExperienceReplay:
     def __init__(self, capacity):

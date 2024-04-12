@@ -25,7 +25,9 @@ def simulateEasy21_finite_deck(playerStrategy, playerBetSize_choice, playerCardC
     player_cardcount_signal = 1.833333333333333333333
 
     while len(shoe) - top_of_shoe_ix > min_decks_to_end * len(deck) and player_bankroll > 0:
-        bet_size = int(playerBetSize_choice(player_cardcount_signal, player_bankroll, None))
+        initial_round_bankroll = player_bankroll
+        
+        bet_size = int(playerBetSize_choice(player_cardcount_signal, len(shoe) - top_of_shoe_ix, player_bankroll))
         bet_size = max(min(bet_size, player_bankroll), 0)
 
         # YIELD: "BET", bet size
@@ -53,7 +55,7 @@ def simulateEasy21_finite_deck(playerStrategy, playerBetSize_choice, playerCardC
         while player_is_active:
             nextCard = shoe[top_of_shoe_ix]
             top_of_shoe_ix += 1
-            player_cardcount_signal = int(playerCardCounter(player_cardcount_signal, nextCard))
+            player_cardcount_signal = int(playerCardCounter(player_cardcount_signal, len(shoe) - top_of_shoe_ix, nextCard))
             player_sum += nextCard
 
             player_busted = player_sum < 1 or player_sum > 21
@@ -95,4 +97,9 @@ def simulateEasy21_finite_deck(playerStrategy, playerBetSize_choice, playerCardC
         player_bankroll += round_gain
 
         # YIELD: "OUTCOME", player wins, dealer wins
-        yield ("OUTCOME", (player_wins, round_gain))
+        if initial_round_bankroll == 0:
+            percent_change_in_bankroll = 0.0
+        else:
+            percent_change_in_bankroll = (initial_round_bankroll + round_gain) / initial_round_bankroll
+        
+        yield ("OUTCOME", (player_wins, round_gain, percent_change_in_bankroll))
