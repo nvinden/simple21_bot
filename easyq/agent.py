@@ -25,8 +25,16 @@ class BetNet(nn.Module):
         return torch.sigmoid(x) * self.max_bet  # Scale output to [0, max_bet]
 
     def transform_state(self, card_count, cards_left, bank_roll):
-        # Normalize inputs
-        return torch.tensor([card_count/10, cards_left/312, bank_roll/self.max_bet]).float()
+        # Normalize inputs more meaningfully considering the problem context
+        # Normalize card_count to range from -1 to 1 (assuming card_count can be both positive and negative)
+        normalized_card_count = card_count / 10.0  # Assuming card_count is within [-10, 10]
+        # Normalize cards_left as a fraction of the total deck (assuming 312 cards in total, for 6 decks)
+        normalized_cards_left = cards_left / 312.0
+        # Normalize bank_roll logarithmically to have a non-linear relationship
+        # Adding 1 to avoid log(0) and scaling logarithmically against max_bet
+        normalized_bank_roll = np.log(bank_roll + 1) / np.log(self.max_bet + 1)
+        
+        return torch.tensor([normalized_card_count, normalized_cards_left, normalized_bank_roll]).float()
 
     def action_from_output(self, output):
         # Convert network output to a discrete action
